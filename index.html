@@ -1,14 +1,826 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hello World</title>
-  <link href='/style.css' rel='stylesheet'>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>베베피디아 — 육아용품 평점</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f13;
+    --surface: #1a1a24;
+    --surface2: #22222f;
+    --border: #2e2e3e;
+    --accent: #ff6b6b;
+    --accent2: #ffd166;
+    --accent3: #06d6a0;
+    --text: #f0f0f5;
+    --text-muted: #7a7a99;
+    --text-dim: #4a4a66;
+    --star-filled: #ffd166;
+    --star-empty: #2e2e3e;
+    --radius: 16px;
+    --card-w: 200px;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── BG texture ── */
+  body::before {
+    content:'';
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% -10%, rgba(255,107,107,.08), transparent),
+      radial-gradient(ellipse 60% 40% at 90% 100%, rgba(255,209,102,.06), transparent);
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: sticky; top:0; z-index:100;
+    background: rgba(15,15,19,.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex; align-items: center; gap:24px;
+    height: 64px;
+  }
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+    white-space: nowrap;
+  }
+  .logo span { color: var(--accent2); }
+
+  .search-wrap {
+    flex:1; max-width:420px; position:relative;
+  }
+  .search-wrap input {
+    width:100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 8px 20px 8px 42px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .search-wrap input::placeholder { color: var(--text-dim); }
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-wrap svg {
+    position:absolute; left:14px; top:50%; transform:translateY(-50%);
+    color: var(--text-dim);
+  }
+
+  .header-nav { margin-left:auto; display:flex; gap:8px; }
+  .btn-ghost {
+    background:none; border:1px solid var(--border);
+    color: var(--text-muted); padding:7px 16px;
+    border-radius:100px; font-family:inherit; font-size:13px;
+    cursor:pointer; transition: all .2s;
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-fill {
+    background: var(--accent); border:none;
+    color: #fff; padding:7px 18px;
+    border-radius:100px; font-family:inherit; font-size:13px; font-weight:700;
+    cursor:pointer; transition: opacity .2s;
+  }
+  .btn-fill:hover { opacity:.85; }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 56px 32px 32px;
+    position:relative; z-index:1;
+  }
+  .hero-eyebrow {
+    font-size:12px; font-weight:700; letter-spacing:3px;
+    color: var(--accent); text-transform:uppercase; margin-bottom:10px;
+  }
+  .hero-title {
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight:900; line-height:1.15;
+    letter-spacing:-1.5px;
+    margin-bottom:12px;
+  }
+  .hero-title em { color: var(--accent2); font-style:normal; }
+  .hero-sub { font-size:15px; color: var(--text-muted); max-width:500px; }
+
+  /* ── FILTER TABS ── */
+  .tabs-wrap {
+    padding: 20px 32px 0;
+    display:flex; gap:8px; flex-wrap:wrap;
+    position:relative; z-index:1;
+  }
+  .tab {
+    background: var(--surface); border:1px solid var(--border);
+    color: var(--text-muted); padding:6px 16px;
+    border-radius:100px; font-family:inherit; font-size:13px;
+    cursor:pointer; transition: all .2s; white-space:nowrap;
+  }
+  .tab:hover { border-color: var(--accent2); color: var(--accent2); }
+  .tab.active {
+    background: var(--accent2); border-color: var(--accent2);
+    color: #111; font-weight:700;
+  }
+
+  /* ── SORT BAR ── */
+  .sort-bar {
+    padding: 20px 32px 12px;
+    display:flex; align-items:center; gap:16px;
+    position:relative; z-index:1;
+  }
+  .sort-label { font-size:13px; color: var(--text-dim); }
+  .sort-btn {
+    background:none; border:none; font-family:inherit;
+    font-size:13px; color: var(--text-muted); cursor:pointer;
+    padding: 4px 8px; border-radius:6px; transition: all .2s;
+  }
+  .sort-btn.active { color: var(--text); font-weight:700; }
+  .sort-btn:hover { color: var(--text); }
+  .item-count { margin-left:auto; font-size:13px; color: var(--text-dim); }
+
+  /* ── GRID ── */
+  .grid {
+    padding: 8px 32px 60px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--card-w), 1fr));
+    gap: 20px;
+    position:relative; z-index:1;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform .25s cubic-bezier(.34,1.56,.64,1), box-shadow .25s;
+    animation: fadeUp .4s both;
+  }
+  .card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 40px rgba(0,0,0,.5);
+    border-color: rgba(255,107,107,.3);
+  }
+
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(20px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  .card:nth-child(1)  { animation-delay:.03s }
+  .card:nth-child(2)  { animation-delay:.06s }
+  .card:nth-child(3)  { animation-delay:.09s }
+  .card:nth-child(4)  { animation-delay:.12s }
+  .card:nth-child(5)  { animation-delay:.15s }
+  .card:nth-child(6)  { animation-delay:.18s }
+  .card:nth-child(7)  { animation-delay:.21s }
+  .card:nth-child(8)  { animation-delay:.24s }
+  .card:nth-child(9)  { animation-delay:.27s }
+  .card:nth-child(10) { animation-delay:.30s }
+
+  .card-img {
+    width:100%; aspect-ratio:1/1;
+    object-fit:cover;
+    display:block;
+    background: var(--surface2);
+    position: relative;
+  }
+  .card-img-wrap { position:relative; overflow:hidden; }
+  .card-img-wrap img { width:100%; aspect-ratio:1/1; object-fit:cover; display:block; transition: transform .4s; }
+  .card:hover .card-img-wrap img { transform:scale(1.06); }
+
+  .card-badge {
+    position:absolute; top:10px; left:10px;
+    background: var(--accent); color:#fff;
+    font-size:10px; font-weight:700; letter-spacing:.5px;
+    padding: 3px 8px; border-radius:100px;
+  }
+  .card-badge.new  { background: var(--accent3); color: #0a3326; }
+  .card-badge.best { background: var(--accent);  color: #fff; }
+  .card-badge.pick { background: var(--accent2); color: #3a2a00; }
+
+  .card-my-rating {
+    position:absolute; top:10px; right:10px;
+    background: rgba(15,15,19,.85); backdrop-filter:blur(8px);
+    border-radius:8px; padding:4px 8px;
+    font-size:12px; font-weight:700; color: var(--accent2);
+    display:flex; align-items:center; gap:3px;
+  }
+  .card-my-rating svg { width:11px; height:11px; fill: var(--accent2); }
+
+  .card-body { padding: 14px 14px 16px; }
+  .card-category {
+    font-size:10px; font-weight:700; letter-spacing:1.5px;
+    color: var(--text-dim); text-transform:uppercase; margin-bottom:5px;
+  }
+  .card-name {
+    font-size:14px; font-weight:700; line-height:1.35;
+    margin-bottom:3px; color: var(--text);
+  }
+  .card-brand { font-size:12px; color: var(--text-muted); margin-bottom:10px; }
+
+  /* Star row */
+  .stars-row { display:flex; align-items:center; gap:6px; margin-bottom:8px; }
+  .stars { display:flex; gap:2px; }
+  .star {
+    width:14px; height:14px;
+    display:inline-block;
+    position:relative;
+    cursor: pointer;
+  }
+  .star svg { width:14px; height:14px; }
+  .star-avg { font-size:13px; font-weight:700; color: var(--accent2); }
+  .star-count { font-size:11px; color: var(--text-dim); }
+
+  /* My rating prompt */
+  .my-rate-row {
+    display:flex; align-items:center; gap:6px;
+    border-top: 1px solid var(--border);
+    padding-top:10px; margin-top:4px;
+  }
+  .my-rate-label { font-size:11px; color: var(--text-dim); }
+  .my-stars { display:flex; gap:2px; }
+  .my-star {
+    width:18px; height:18px; cursor:pointer;
+    transition: transform .15s;
+  }
+  .my-star:hover { transform: scale(1.25); }
+  .my-star svg { width:18px; height:18px; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position:fixed; inset:0; z-index:200;
+    background: rgba(0,0,0,.7); backdrop-filter:blur(6px);
+    display:flex; align-items:center; justify-content:center;
+    padding:20px;
+    opacity:0; pointer-events:none; transition: opacity .25s;
+  }
+  .modal-overlay.open { opacity:1; pointer-events:all; }
+
+  .modal {
+    background: var(--surface);
+    border:1px solid var(--border);
+    border-radius: 20px;
+    width:100%; max-width:540px;
+    max-height: 88vh; overflow-y:auto;
+    transform: translateY(24px) scale(.97);
+    transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+    position:relative;
+  }
+  .modal-overlay.open .modal { transform: translateY(0) scale(1); }
+
+  .modal-close {
+    position:sticky; top:0; float:right;
+    background: var(--surface2); border:none;
+    color: var(--text-muted); width:36px; height:36px;
+    border-radius:50%; font-size:18px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    margin: 16px 16px 0 0; z-index:10;
+    transition: color .2s;
+  }
+  .modal-close:hover { color: var(--text); }
+
+  .modal-hero { display:flex; gap:20px; padding:20px 24px 0; }
+  .modal-img {
+    width:120px; height:120px; object-fit:cover;
+    border-radius:12px; flex-shrink:0;
+    background: var(--surface2);
+  }
+  .modal-info { flex:1; }
+  .modal-cat { font-size:11px; font-weight:700; letter-spacing:1.5px; color: var(--accent); text-transform:uppercase; margin-bottom:6px; }
+  .modal-name { font-size:20px; font-weight:900; line-height:1.2; margin-bottom:4px; }
+  .modal-brand { font-size:13px; color: var(--text-muted); margin-bottom:12px; }
+
+  .modal-score-block {
+    display:flex; align-items:baseline; gap:8px; margin-bottom:8px;
+  }
+  .modal-score-big { font-size:40px; font-weight:900; color: var(--accent2); line-height:1; }
+  .modal-score-denom { font-size:16px; color: var(--text-dim); }
+  .modal-stars-lg { display:flex; gap:3px; }
+  .modal-stars-lg svg { width:18px; height:18px; }
+
+  .modal-body { padding: 20px 24px 28px; }
+  .modal-desc { font-size:14px; color: var(--text-muted); line-height:1.7; margin-bottom:20px; }
+
+  .modal-tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:24px; }
+  .tag {
+    background: var(--surface2); border:1px solid var(--border);
+    color: var(--text-muted); font-size:12px;
+    padding:4px 10px; border-radius:100px;
+  }
+
+  .modal-rate-section { margin-bottom:24px; }
+  .modal-rate-title { font-size:13px; font-weight:700; margin-bottom:10px; }
+  .modal-rate-stars { display:flex; gap:6px; }
+  .modal-rate-star {
+    width:32px; height:32px; cursor:pointer;
+    transition: transform .15s;
+  }
+  .modal-rate-star:hover, .modal-rate-star.hovered { transform: scale(1.3); }
+  .modal-rate-star svg { width:32px; height:32px; }
+  .rate-hint { font-size:12px; color: var(--accent2); margin-top:6px; height:16px; }
+
+  .modal-reviews { }
+  .review-title { font-size:13px; font-weight:700; margin-bottom:12px; }
+  .review-item {
+    background: var(--surface2); border-radius:12px;
+    padding: 14px; margin-bottom:10px;
+  }
+  .review-header { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .review-avatar {
+    width:28px; height:28px; border-radius:50%;
+    background: var(--border); display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; color: var(--text-muted);
+  }
+  .review-user { font-size:13px; font-weight:700; }
+  .review-date { font-size:11px; color: var(--text-dim); margin-left:auto; }
+  .review-stars { display:flex; gap:2px; margin-bottom:6px; }
+  .review-stars svg { width:12px; height:12px; }
+  .review-text { font-size:13px; color: var(--text-muted); line-height:1.6; }
+
+  /* ── TOAST ── */
+  .toast {
+    position:fixed; bottom:32px; left:50%; transform:translateX(-50%) translateY(20px);
+    background: var(--surface2); border:1px solid var(--border);
+    border-radius:100px; padding:10px 22px;
+    font-size:13px; color: var(--text);
+    opacity:0; pointer-events:none; transition: all .3s;
+    z-index:999; white-space:nowrap;
+    box-shadow: 0 8px 32px rgba(0,0,0,.4);
+  }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+  .toast strong { color: var(--accent2); }
+
+  /* ── RESPONSIVE ── */
+  @media(max-width:600px){
+    header { padding:0 16px; }
+    .hero, .tabs-wrap, .sort-bar, .grid { padding-left:16px; padding-right:16px; }
+    .hero { padding-top:36px; }
+    :root { --card-w: 150px; }
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width:6px; }
+  ::-webkit-scrollbar-track { background:var(--bg); }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+</style>
 </head>
 <body>
-  <h1>Hello, world!</h1>
-  <button onclick="console.log('hello');">Press me</button>
-  <script defer type="text/javascript" src="/main.js"></script>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">베베<span>피디아</span></div>
+  <div class="search-wrap">
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+      <circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input type="text" placeholder="육아용품 검색..." id="searchInput">
+  </div>
+  <div class="header-nav">
+    <button class="btn-ghost">로그인</button>
+    <button class="btn-fill">회원가입</button>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <p class="hero-eyebrow">✦ 육아용품 평점 플랫폼</p>
+  <h1 class="hero-title">내 아이에게 딱 맞는<br><em>육아용품</em>을 찾아보세요</h1>
+  <p class="hero-sub">실제 부모들의 솔직한 평점과 리뷰로 믿을 수 있는 육아용품을 선택하세요.</p>
+</section>
+
+<!-- TABS -->
+<div class="tabs-wrap" id="tabs">
+  <button class="tab active" data-cat="전체">전체</button>
+  <button class="tab" data-cat="유모차">🚼 유모차</button>
+  <button class="tab" data-cat="카시트">🚗 카시트</button>
+  <button class="tab" data-cat="수유용품">🍼 수유용품</button>
+  <button class="tab" data-cat="침구류">🛏 침구류</button>
+  <button class="tab" data-cat="목욕용품">🛁 목욕용품</button>
+  <button class="tab" data-cat="장난감">🧸 장난감</button>
+  <button class="tab" data-cat="의류">👶 의류</button>
+</div>
+
+<!-- SORT BAR -->
+<div class="sort-bar">
+  <span class="sort-label">정렬</span>
+  <button class="sort-btn active" data-sort="rating">평점순</button>
+  <button class="sort-btn" data-sort="reviews">리뷰많은순</button>
+  <button class="sort-btn" data-sort="newest">최신순</button>
+  <span class="item-count" id="itemCount"></span>
+</div>
+
+<!-- GRID -->
+<div class="grid" id="grid"></div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modal">
+    <button class="modal-close" id="modalClose">✕</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ──────────────────────────────────────────
+   DATA
+────────────────────────────────────────── */
+const PRODUCTS = [
+  {
+    id:1, name:'에어버기 코코 프리미어', brand:'에어버기',
+    cat:'유모차', badge:'best',
+    img:'https://placehold.co/400x400/1a1a2e/ff6b6b?text=유모차',
+    avgRating:4.7, reviewCount:1284,
+    desc:'일본 장인정신으로 만든 프리미엄 유모차. 독보적인 서스펜션 시스템으로 울퉁불퉁한 길에서도 아기가 편안하게 이동할 수 있습니다. 접이식 구조로 보관이 편리하며 세련된 디자인이 특징입니다.',
+    tags:['접이식','서스펜션','경량','생후0개월~'],
+    reviews:[
+      { user:'별이맘', score:5, date:'2025.12', text:'정말 탁월한 선택이었어요. 서스펜션이 훌륭해서 산책할 때 아이가 잘 자요. 가격은 좀 나가지만 충분히 값어치 합니다.' },
+      { user:'준혁아빠', score:4, date:'2025.11', text:'품질은 최고예요. 다만 접는 방식이 처음엔 좀 익숙해지는데 시간이 걸렸어요. 익숙해지면 괜찮습니다.' },
+    ]
+  },
+  {
+    id:2, name:'맥시코시 펄360 프로', brand:'맥시코시',
+    cat:'카시트', badge:'pick',
+    img:'https://placehold.co/400x400/1a2e1a/06d6a0?text=카시트',
+    avgRating:4.8, reviewCount:876,
+    desc:'360° 회전 기능이 탑재된 혁신적인 카시트. 좁은 공간에서도 아이를 쉽게 태우고 내릴 수 있으며, 신생아부터 4세까지 사용 가능한 올인원 제품입니다.',
+    tags:['360도회전','신생아~4세','ISOFIX','에어백보호'],
+    reviews:[
+      { user:'소율엄마', score:5, date:'2026.01', text:'360도 회전 기능 너무 편해요! 지하주차장같이 좁은 곳에서 아이 태울 때 정말 도움이 많이 돼요.' },
+      { user:'세찬맘', score:5, date:'2025.12', text:'안전성은 두말할 필요 없고, 설치도 직관적이에요. 강력 추천합니다.' },
+    ]
+  },
+  {
+    id:3, name:'메델라 프리스타일 플렉스', brand:'메델라',
+    cat:'수유용품', badge:'best',
+    img:'https://placehold.co/400x400/2e1a1a/ffd166?text=유축기',
+    avgRating:4.6, reviewCount:2103,
+    desc:'세계 1위 유축기 브랜드 메델라의 무선 핸즈프리 유축기. 모유 수유를 더욱 편리하게 만들어주는 스마트 디바이스로, 앱 연동으로 세션을 기록하고 모니터링할 수 있습니다.',
+    tags:['무선','핸즈프리','앱연동','이중유축'],
+    reviews:[
+      { user:'하랑맘', score:5, date:'2026.02', text:'직장 복귀 후 정말 유용해요. 무선이라 이동하면서도 유축 가능하고 소음도 적어요.' },
+      { user:'유준엄마', score:4, date:'2026.01', text:'기능은 훌륭한데 배터리가 좀 빨리 닳는 편이에요. 그래도 만족해요.' },
+    ]
+  },
+  {
+    id:4, name:'팜므베베 유기농 이불세트', brand:'팜므베베',
+    cat:'침구류', badge:'new',
+    img:'https://placehold.co/400x400/1a1a2e/a8c5da?text=침구류',
+    avgRating:4.4, reviewCount:456,
+    desc:'100% 유기농 면으로 제작된 프리미엄 아기 침구 세트. OEKO-TEX 인증을 받아 피부 트러블 걱정 없이 사용할 수 있으며, 가벼운 무게로 아기의 수면을 방해하지 않습니다.',
+    tags:['유기농','OEKO-TEX','저자극','사계절용'],
+    reviews:[
+      { user:'아린맘', score:5, date:'2026.02', text:'아토피 있는 아이인데 이걸 쓰고 나서 훨씬 나아졌어요. 촉감도 너무 부드럽고 만족해요.' },
+    ]
+  },
+  {
+    id:5, name:'릭 싱크 베이비 배스텁', brand:'릭',
+    cat:'목욕용품', badge:null,
+    img:'https://placehold.co/400x400/1a2a2a/4ecdc4?text=욕조',
+    avgRating:4.2, reviewCount:734,
+    desc:'인체공학적 설계로 혼자서도 안전하게 아이를 목욕시킬 수 있는 배스텁. 미끄럼 방지 소재를 사용하고 온도계가 내장되어 있어 안전한 목욕을 도와줍니다.',
+    tags:['온도계내장','미끄럼방지','폴딩가능','신생아~24개월'],
+    reviews:[
+      { user:'도윤아빠', score:4, date:'2025.11', text:'혼자 아이 목욕시킬 때 매우 유용해요. 온도계가 내장되어 있어서 물 온도 확인이 편합니다.' },
+    ]
+  },
+  {
+    id:6, name:'레고 듀플로 클래식 블록', brand:'레고',
+    cat:'장난감', badge:'best',
+    img:'https://placehold.co/400x400/2e1a2e/ff9f1c?text=장난감',
+    avgRating:4.9, reviewCount:3421,
+    desc:'아이의 창의력과 소근육 발달을 돕는 클래식 듀플로 블록 세트. 어른 손에는 잡기 쉽고 아이 입에는 들어가지 않을 크기로 설계되어 안전하게 놀이할 수 있습니다.',
+    tags:['창의력발달','소근육발달','18개월~','안전인증'],
+    reviews:[
+      { user:'지우맘', score:5, date:'2026.01', text:'레고 역시 레고네요. 내구성도 뛰어나고 아이가 정말 좋아해요. 몇 년을 써도 망가지지 않아서 형제가 물려받아 쓰고 있어요.' },
+      { user:'시연아빠', score:5, date:'2025.12', text:'교육적으로도 훌륭하고 아이 혼자서도 잘 놀아요. 강력 추천!' },
+    ]
+  },
+  {
+    id:7, name:'무민 유기농 바디수트 5팩', brand:'무민베이비',
+    cat:'의류', badge:'new',
+    img:'https://placehold.co/400x400/2a1a2e/c77dff?text=바디수트',
+    avgRating:4.5, reviewCount:312,
+    desc:'북유럽 감성의 귀여운 무민 캐릭터가 프린트된 유기농 면 바디수트. 질긴 면소재로 세탁 후에도 줄어들지 않으며, 스냅 버튼으로 기저귀 교체가 쉽습니다.',
+    tags:['유기농면','스냅버튼','캐릭터','50~90사이즈'],
+    reviews:[
+      { user:'나은엄마', score:5, date:'2026.02', text:'너무 귀여워요! 세탁해도 변형이 없고 촉감이 부드러워서 아이가 편해 보여요.' },
+    ]
+  },
+  {
+    id:8, name:'스토케 트립트랩 하이체어', brand:'스토케',
+    cat:'수유용품', badge:'pick',
+    img:'https://placehold.co/400x400/2e2a1a/ffb347?text=하이체어',
+    avgRating:4.7, reviewCount:1567,
+    desc:'아이의 성장에 맞춰 조절 가능한 스칸디나비아 디자인의 하이체어. 신생아부터 성인까지 사용 가능하며, 견고한 너도밤나무 소재로 평생 사용할 수 있는 제품입니다.',
+    tags:['높이조절','견고한원목','아기부터성인','북유럽디자인'],
+    reviews:[
+      { user:'예준맘', score:5, date:'2025.12', text:'비싸지만 투자 가치 있어요. 아이 성장에 따라 계속 조절해서 쓸 수 있으니 장기적으로 경제적이에요.' },
+      { user:'채은아빠', score:4, date:'2025.11', text:'디자인이 너무 예쁘고 튼튼해요. 청소가 좀 번거로울 수 있지만 뭐 애 밥 먹이는 게 원래 그렇죠.' },
+    ]
+  },
+  {
+    id:9, name:'치코 넥스트2미 드림', brand:'치코',
+    cat:'침구류', badge:null,
+    img:'https://placehold.co/400x400/1a2a1e/52b788?text=아기침대',
+    avgRating:4.3, reviewCount:689,
+    desc:'부모 침대 옆에 붙여서 사용하는 사이드 바디 침대. 밤중 수유와 달래기가 훨씬 수월하며 메쉬 소재로 통기성이 뛰어나 아기가 쾌적하게 잠을 잘 수 있습니다.',
+    tags:['사이드침대','메쉬통기성','높이조절','신생아~6개월'],
+    reviews:[
+      { user:'서아맘', score:4, date:'2025.12', text:'밤중 수유할 때 너무 편해요. 아이 곁에서 같이 잘 수 있어서 안심이 돼요.' },
+    ]
+  },
+  {
+    id:10, name:'프리다베이비 노즈프리다', brand:'프리다베이비',
+    cat:'목욕용품', badge:'pick',
+    img:'https://placehold.co/400x400/2e1e1a/ff9999?text=코흡입기',
+    avgRating:4.6, reviewCount:4231,
+    desc:'미국 소아과 의사 추천 1위 코 흡입기. 특수 필터로 세균이 입으로 넘어오지 않으며, 흡입력을 직접 조절할 수 있어 신생아부터 안전하게 사용할 수 있습니다.',
+    tags:['소아과추천','위생필터','흡입력조절','신생아~'],
+    reviews:[
+      { user:'민준엄마', score:5, date:'2026.01', text:'처음엔 좀 거부감 있었는데 써보니 대박이에요. 흡입력이 좋아서 막힌 코가 잘 뚫려요. 아이 감기 때 필수품이 됐어요.' },
+      { user:'이현맘', score:5, date:'2025.11', text:'모든 육아맘 필수템이에요. 아이 코 막힘 해결되면 엄마 아빠도 잘 수 있어요.' },
+    ]
+  },
+  {
+    id:11, name:'바운서 발렌더 블리스', brand:'비욘',
+    cat:'유모차', badge:'new',
+    img:'https://placehold.co/400x400/1e1a2e/9b89b4?text=바운서',
+    avgRating:4.5, reviewCount:923,
+    desc:'아이의 자연스러운 움직임에 반응하는 스마트 바운서. 별도 배터리나 전원 없이 아이의 움직임만으로 작동하며, 자연 소재 시트로 체온 조절을 도와줍니다.',
+    tags:['무동력','자연소재','휴대용','신생아~9kg'],
+    reviews:[
+      { user:'리아맘', score:5, date:'2026.02', text:'집안일 할 때 정말 유용해요. 아이 스스로 발을 차면서 움직이는 걸 보면 너무 귀엽고요. 세탁도 돼서 위생적이에요.' },
+    ]
+  },
+  {
+    id:12, name:'펌킨 기저귀 정리함', brand:'펌킨',
+    cat:'침구류', badge:null,
+    img:'https://placehold.co/400x400/2e2e1a/e9c46a?text=정리함',
+    avgRating:3.9, reviewCount:245,
+    desc:'기저귀와 육아용품을 한곳에 깔끔하게 정리할 수 있는 대형 정리함. 칸막이로 분류 보관이 가능하며 방수 소재로 어디서든 사용할 수 있습니다.',
+    tags:['방수소재','칸막이분류','이동식','대용량'],
+    reviews:[
+      { user:'준서아빠', score:4, date:'2025.12', text:'정리 용량이 넉넉하고 이동이 편해요. 재질은 기대보다 조금 얇은 편이에요.' },
+    ]
+  },
+];
+
+/* ──────────────────────────────────────────
+   STATE
+────────────────────────────────────────── */
+let currentCat = '전체';
+let currentSort = 'rating';
+let searchQuery = '';
+let myRatings = {};   // id → score
+let openProductId = null;
+
+const RATING_LABELS = ['','별로예요','그저 그래요','보통이에요','좋아요!','최고예요!'];
+
+/* ──────────────────────────────────────────
+   HELPERS
+────────────────────────────────────────── */
+function starSVG(filled, size=14){
+  const c = filled ? '#ffd166' : '#2e2e3e';
+  return `<svg viewBox="0 0 24 24" fill="${c}"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
+}
+
+function renderStars(avg, size=14){
+  let html='';
+  for(let i=1;i<=5;i++){
+    const filled = i<=Math.round(avg);
+    html+=`<span class="star">${starSVG(filled,size)}</span>`;
+  }
+  return html;
+}
+
+function renderMyStars(productId, currentScore, size=18, context='card'){
+  let html='';
+  for(let i=1;i<=5;i++){
+    const filled = i<=(myRatings[productId]||0);
+    html+=`<span class="my-star"
+      data-id="${productId}" data-score="${i}" data-ctx="${context}"
+      onmouseenter="hoverStar(this,${i},'${context}_${productId}')"
+      onmouseleave="unhoverStar('${context}_${productId}',${myRatings[productId]||0})"
+      onclick="rateStar(${productId},${i})"
+    >${starSVG(filled,size)}</span>`;
+  }
+  return html;
+}
+
+function hoverStar(el, score, groupId){
+  document.querySelectorAll(`[data-ctx="${el.dataset.ctx}"]`).forEach(s=>{
+    const si = parseInt(s.dataset.score);
+    s.innerHTML = starSVG(si<=score);
+  });
+  // hint for modal
+  const hint = document.getElementById('rateHint');
+  if(hint) hint.textContent = RATING_LABELS[score];
+}
+
+function unhoverStar(groupId, savedScore){
+  // groupId = ctx_id
+  const [ctx, id] = groupId.split('_');
+  document.querySelectorAll(`[data-ctx="${ctx}"][data-id="${id}"]`).forEach(s=>{
+    s.innerHTML = starSVG(parseInt(s.dataset.score)<=savedScore);
+  });
+  const hint = document.getElementById('rateHint');
+  if(hint) hint.textContent = savedScore ? RATING_LABELS[savedScore] : '';
+}
+
+function rateStar(productId, score){
+  myRatings[productId] = score;
+  showToast(`<strong>${RATING_LABELS[score]}</strong> — 평점이 저장되었어요 ⭐`);
+  renderGrid();
+  // re-render modal if open
+  if(openProductId === productId) openModal(productId);
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.innerHTML = msg; t.classList.add('show');
+  clearTimeout(t._tid);
+  t._tid = setTimeout(()=>t.classList.remove('show'),2400);
+}
+
+/* ──────────────────────────────────────────
+   FILTER & SORT
+────────────────────────────────────────── */
+function filteredProducts(){
+  let list = PRODUCTS.filter(p=>{
+    const matchCat = currentCat==='전체' || p.cat===currentCat;
+    const matchSearch = !searchQuery ||
+      p.name.includes(searchQuery) || p.brand.includes(searchQuery) || p.cat.includes(searchQuery);
+    return matchCat && matchSearch;
+  });
+  if(currentSort==='rating')  list.sort((a,b)=>b.avgRating-a.avgRating);
+  if(currentSort==='reviews') list.sort((a,b)=>b.reviewCount-a.reviewCount);
+  if(currentSort==='newest')  list.sort((a,b)=>b.id-a.id);
+  return list;
+}
+
+/* ──────────────────────────────────────────
+   RENDER GRID
+────────────────────────────────────────── */
+function renderGrid(){
+  const list = filteredProducts();
+  const grid = document.getElementById('grid');
+  document.getElementById('itemCount').textContent = `총 ${list.length}개`;
+
+  grid.innerHTML = list.map((p,i)=>{
+    const myScore = myRatings[p.id]||0;
+    const badgeHtml = p.badge
+      ? `<span class="card-badge ${p.badge}">${p.badge==='best'?'BEST':p.badge==='new'?'NEW':'PICK'}</span>`
+      : '';
+    const myBadge = myScore
+      ? `<span class="card-my-rating">${starSVG(true,11)}&nbsp;${myScore}</span>`
+      : '';
+    return `
+    <div class="card" style="animation-delay:${i*0.04}s" onclick="openModal(${p.id})">
+      <div class="card-img-wrap">
+        <img src="${p.img}" alt="${p.name}" loading="lazy">
+        ${badgeHtml}${myBadge}
+      </div>
+      <div class="card-body">
+        <div class="card-category">${p.cat}</div>
+        <div class="card-name">${p.name}</div>
+        <div class="card-brand">${p.brand}</div>
+        <div class="stars-row">
+          <div class="stars">${renderStars(p.avgRating)}</div>
+          <span class="star-avg">${p.avgRating.toFixed(1)}</span>
+          <span class="star-count">(${p.reviewCount.toLocaleString()})</span>
+        </div>
+        <div class="my-rate-row" onclick="event.stopPropagation()">
+          <span class="my-rate-label">내 평점</span>
+          <div class="my-stars" id="myStars_card_${p.id}">
+            ${renderMyStars(p.id, myScore, 18, 'card')}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ──────────────────────────────────────────
+   MODAL
+────────────────────────────────────────── */
+function openModal(productId){
+  openProductId = productId;
+  const p = PRODUCTS.find(x=>x.id===productId);
+  const myScore = myRatings[productId]||0;
+
+  const reviewsHtml = p.reviews.map(r=>{
+    const initials = r.user.slice(0,2);
+    return `<div class="review-item">
+      <div class="review-header">
+        <div class="review-avatar">${initials}</div>
+        <span class="review-user">${r.user}</span>
+        <div class="review-stars">${renderStars(r.score,12)}</div>
+        <span class="review-date">${r.date}</span>
+      </div>
+      <p class="review-text">${r.text}</p>
+    </div>`;
+  }).join('');
+
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-hero">
+      <img class="modal-img" src="${p.img}" alt="${p.name}">
+      <div class="modal-info">
+        <div class="modal-cat">${p.cat}</div>
+        <div class="modal-name">${p.name}</div>
+        <div class="modal-brand">${p.brand}</div>
+        <div class="modal-score-block">
+          <span class="modal-score-big">${p.avgRating.toFixed(1)}</span>
+          <span class="modal-score-denom">/5.0</span>
+        </div>
+        <div class="modal-stars-lg">${renderStars(p.avgRating,18)}</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:4px">리뷰 ${p.reviewCount.toLocaleString()}개</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p class="modal-desc">${p.desc}</p>
+      <div class="modal-tags">${p.tags.map(t=>`<span class="tag"># ${t}</span>`).join('')}</div>
+
+      <div class="modal-rate-section">
+        <div class="modal-rate-title">내 평점 남기기</div>
+        <div class="modal-rate-stars" id="myStars_modal_${p.id}">
+          ${renderMyStars(p.id, myScore, 32, 'modal')}
+        </div>
+        <div class="rate-hint" id="rateHint">${myScore ? RATING_LABELS[myScore] : ''}</div>
+      </div>
+
+      <div class="modal-reviews">
+        <div class="review-title">리뷰 ${p.reviews.length}개</div>
+        ${reviewsHtml || '<p style="font-size:13px;color:var(--text-dim)">아직 리뷰가 없어요.</p>'}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeModal(){
+  openProductId=null;
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+/* ──────────────────────────────────────────
+   EVENTS
+────────────────────────────────────────── */
+document.getElementById('modalClose').addEventListener('click', closeModal);
+document.getElementById('modalOverlay').addEventListener('click', e=>{
+  if(e.target===document.getElementById('modalOverlay')) closeModal();
+});
+
+document.getElementById('tabs').addEventListener('click', e=>{
+  const btn = e.target.closest('.tab');
+  if(!btn) return;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  currentCat = btn.dataset.cat;
+  renderGrid();
+});
+
+document.querySelectorAll('.sort-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.sort-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentSort = btn.dataset.sort;
+    renderGrid();
+  });
+});
+
+document.getElementById('searchInput').addEventListener('input', e=>{
+  searchQuery = e.target.value.trim();
+  renderGrid();
+});
+
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape') closeModal();
+});
+
+/* ──────────────────────────────────────────
+   INIT
+────────────────────────────────────────── */
+renderGrid();
+</script>
 </body>
 </html>
